@@ -15,6 +15,30 @@ bg_color = "#000000"
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+
+class Stats():
+    def __init__(self):
+        self.lives = 3
+        self.count = 0
+        self.running = True
+
+    def restart(self, screen, ship):
+        aliens.empty()
+        bullets.empty()
+        self.screen = screen
+        self.screen_rect = self.screen.get_rect()
+        self.ship = ship
+
+        ship.rect.centerx = self.screen_rect.centerx
+        ship.rect.centery = self.screen_rect.bottom - 100
+        
+        pygame.time.wait(500)
+
+    def died(self, screen):
+        font = pygame.font.Font('Sonic Press Start Button [NolivantNT Edit]/SonicPressStartButton[NolivantNTEdit]-Regular.ttf', 36)
+        text_image = font.render('Game Over', False, "#645F91")
+        screen.blit(text_image, (150, 300))
+
 class Star(Sprite):
     def __init__(self, screen):
         super().__init__()
@@ -165,7 +189,12 @@ def update_bullets(dt):
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
 
-def update_aliens(dt, spawn_timer):
+def update_aliens(dt, spawn_timer, screen, ship):
+        collisions = pygame.sprite.spritecollide(ship, aliens, True)
+        if collisions:
+            stats.lives -= 1
+            stats.restart(screen, ship)
+
         for alien in aliens.sprites():
             if alien.rect.top > HEIGHT:
                 aliens.remove(alien)
@@ -183,6 +212,7 @@ def update_aliens(dt, spawn_timer):
 
 
 ship = Ship(screen)
+stats = Stats()
 stars = Group()
 bullets = Group()
 
@@ -206,48 +236,58 @@ while True:
             pygame.quit()
             sys.exit()
 
-        elif event.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
                 pygame.quit()
                 sys.exit()
 
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                ship.mov_left = True
+            if stats.running:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    ship.mov_left = True
 
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                ship.mov_right = True
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    ship.mov_right = True
 
-            if event.key == pygame.K_UP or event.key == pygame.K_w:
-                ship.mov_up = True
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    ship.mov_up = True
 
-            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                ship.mov_down = True
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    ship.mov_down = True
 
-            if event.key == pygame.K_SPACE:
-                bullet = Bullet(screen, ship)
-                bullets.add(bullet)
+                if event.key == pygame.K_SPACE:
+                    bullet = Bullet(screen, ship)
+                    bullets.add(bullet)
 
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                ship.mov_left = False
+            if stats.running:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    ship.mov_left = False
 
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                ship.mov_right = False
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    ship.mov_right = False
 
-            if event.key == pygame.K_UP or event.key == pygame.K_w:
-                ship.mov_up = False
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    ship.mov_up = False
 
-            if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                ship.mov_down = False
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    ship.mov_down = False
+
+    if stats.lives == 0:
+        stats.running = False
+        stats.died(screen)
+
+    if stats.lives:
+        screen.fill(bg_color)
+        stars.update(dt)
+        ship.update(dt)
+        update_bullets(dt)
+        global_spawn_timer = update_aliens(dt, global_spawn_timer, screen, ship)
+        stars.draw(screen)
+        aliens.draw(screen)
+        ship.blitme()
+    else:
+        screen.fill(bg_color)
+        stats.died(screen)
 
 
-    screen.fill(bg_color)
-
-    stars.update(dt)
-    ship.update(dt)
-    update_bullets(dt)
-    global_spawn_timer = update_aliens(dt, global_spawn_timer)
-    stars.draw(screen)
-    aliens.draw(screen)
-    ship.blitme()
     pygame.display.flip()
