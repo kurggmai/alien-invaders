@@ -167,8 +167,11 @@ def update_bullets(dt):
 
 def update_aliens(dt, spawn_timer):
         for alien in aliens.sprites():
-            alien.update(dt)
-            alien.blitme()
+            if alien.rect.top > HEIGHT:
+                aliens.remove(alien)
+            else:
+                alien.update(dt)
+                alien.blitme()
 
         spawn_timer -= dt
         if spawn_timer <= 0:
@@ -248,4 +251,3 @@ while True:
     aliens.draw(screen)
     ship.blitme()
     pygame.display.flip()
-    print(len(bullets))
