@@ -51,7 +51,7 @@ class Ship(Sprite):
         self.screen_rect = self.screen.get_rect()
         self.speed_factor = 300
 
-        self.image = pygame.image.load('/Users/petya/Documents/Python/code/Homeworks/h14_1/images/ship.png')
+        self.image = pygame.image.load('images/ship.png')
         self.image = pygame.transform.scale_by(self.image, 2)
 
         self.rect = self.image.get_rect()
@@ -112,7 +112,7 @@ class Alien(Sprite):
         self.screen = screen
         self.screen_rect = self.screen.get_rect()
         
-        self.image = pygame.image.load('/Users/petya/Documents/Python/code/Homeworks/h14_1/images/alien.png')
+        self.image = pygame.image.load('images/alien.png')
         self.image = pygame.transform.scale_by(self.image, 4)
         self.rect = self.image.get_rect()
 
