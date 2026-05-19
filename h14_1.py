@@ -127,7 +127,6 @@ class Alien(Sprite):
         self.vector = 1
         
         self.timer = uniform(1, 3)
-        self.spawn_timer = uniform(1, 3)
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)
