@@ -201,6 +201,23 @@ class Button():
         self.screen.blit(self.image, self.rect)
 
 
+class Hearts():
+    def __init__(self, screen, lives):
+        self.screen = screen
+        self.screen_rect = self.screen.get_rect()
+        self.image = pygame.image.load('images/heart.png')
+        self.image = pygame.transform.scale_by(self.image, 0.15)
+        self.rect = self.image.get_rect()
+    
+    def update(self, lives):
+        for n in range(lives):
+            self.rect.x = self.rect.width // 2 + (self.rect.width + 10) * n
+            self.rect.y = self.screen_rect.top + self.rect.height
+            self.screen.blit(self.image, self.rect)
+            
+
+
+
 def update_bullets(dt):
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
 
@@ -242,9 +259,10 @@ def check_button_pressed(event, button, screen, ship):
 
 
 
+stats = Stats()
 ship = Ship(screen)
 button = Button(screen)
-stats = Stats()
+hearts = Hearts(screen, stats.lives)
 stars = Group()
 bullets = Group()
 
@@ -317,6 +335,7 @@ while True:
         stars.draw(screen)
         aliens.draw(screen)
         ship.blitme()
+        hearts.update(stats.lives)
     else:
         screen.fill(bg_color)
         stats.died(screen)
