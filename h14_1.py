@@ -39,6 +39,13 @@ class Stats():
         text_image = font.render('Game Over', False, "#645F91")
         screen.blit(text_image, (150, 300))
 
+    def reload(self, screen, ship):
+        self.restart(screen, ship)
+
+        self.lives = 3
+        self.count = 0
+        self.running = True
+
 class Star(Sprite):
     def __init__(self, screen):
         super().__init__()
@@ -73,7 +80,7 @@ class Ship(Sprite):
         super().__init__()
         self.screen = screen
         self.screen_rect = self.screen.get_rect()
-        self.speed_factor = 300
+        self.speed_factor = 500
 
         self.image = pygame.image.load('images/ship.png')
         self.image = pygame.transform.scale_by(self.image, 2)
@@ -180,6 +187,20 @@ class Alien(Sprite):
         self.rect.y = int(self.y)
 
 
+class Button():
+    def __init__(self, screen):
+        self.screen = screen
+        self.screen_rect = self.screen.get_rect()
+        self.image = pygame.image.load('images/button.png')
+        self.image = pygame.transform.scale_by(self.image, 0.3)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.screen_rect.centerx
+        self.rect.centery = self.screen_rect.centery + 55
+
+    def blitme(self):
+        self.screen.blit(self.image, self.rect)
+
+
 def update_bullets(dt):
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
 
@@ -210,8 +231,19 @@ def update_aliens(dt, spawn_timer, screen, ship):
 
         return spawn_timer
 
+def check_button_pressed(event, button, screen, ship):
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        mousex, mousey = pygame.mouse.get_pos()
+        if (
+            mousex > button.rect.left and mousex < button.rect.right 
+            and mousey > button.rect.top and mousey < button.rect.bottom
+            ):
+            stats.reload(screen, ship)
+
+
 
 ship = Ship(screen)
+button = Button(screen)
 stats = Stats()
 stars = Group()
 bullets = Group()
@@ -288,6 +320,8 @@ while True:
     else:
         screen.fill(bg_color)
         stats.died(screen)
-
+        button.blitme()
+        check_button_pressed(event, button, screen, ship)
+        
 
     pygame.display.flip()
