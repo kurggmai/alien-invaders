@@ -19,7 +19,8 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 class Stats():
     def __init__(self):
         self.lives = 3
-        self.count = 0
+        self.score = 0
+        self.max_score = 0
         self.running = True
 
     def restart(self, screen, ship):
@@ -28,6 +29,9 @@ class Stats():
         self.screen = screen
         self.screen_rect = self.screen.get_rect()
         self.ship = ship
+        if self.score > self.max_score:
+            self.max_score = self.score
+        self.score = 0
 
         ship.rect.centerx = self.screen_rect.centerx
         ship.rect.centery = self.screen_rect.bottom - 100
@@ -35,15 +39,20 @@ class Stats():
         pygame.time.wait(500)
 
     def died(self, screen):
-        font = pygame.font.Font('Sonic Press Start Button [NolivantNT Edit]/SonicPressStartButton[NolivantNTEdit]-Regular.ttf', 36)
+        font = pygame.font.Font('fonts/Sonic Press Start Button [NolivantNT Edit]/SonicPressStartButton[NolivantNTEdit]-Regular.ttf', 36)
         text_image = font.render('Game Over', False, "#645F91")
         screen.blit(text_image, (150, 300))
+        font = pygame.font.Font('fonts/uvKits/uvKits.ttf', 35)
+        text_image = font.render(f'Your best score: {self.max_score}', False, "#9FADB2")
+        screen.blit(text_image, (150, 500))
+
 
     def reload(self, screen, ship):
         self.restart(screen, ship)
 
         self.lives = 3
-        self.count = 0
+        self.score = 0
+        self.max_score = 0
         self.running = True
 
 class Star(Sprite):
@@ -218,8 +227,10 @@ class Hearts():
 
 
 
-def update_bullets(dt):
+def update_bullets(dt, stats):
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    if collisions:
+        stats.score += 1
 
     for bullet in bullets.sprites():
         bullet.update(dt)
@@ -256,6 +267,13 @@ def check_button_pressed(event, button, screen, ship):
             and mousey > button.rect.top and mousey < button.rect.bottom
             ):
             stats.reload(screen, ship)
+
+def print_score(score, screen):
+    screen_rect = screen.get_rect()
+    font = pygame.font.SysFont(None, 30)
+    text_image = font.render(str(score), True, "#9FADB2")
+    screen.blit(text_image, (screen_rect.centerx, screen_rect.top + 30))
+
 
 
 
@@ -330,12 +348,13 @@ while True:
         screen.fill(bg_color)
         stars.update(dt)
         ship.update(dt)
-        update_bullets(dt)
+        update_bullets(dt, stats)
         global_spawn_timer = update_aliens(dt, global_spawn_timer, screen, ship)
         stars.draw(screen)
         aliens.draw(screen)
         ship.blitme()
         hearts.update(stats.lives)
+        print_score(stats.score, screen)
     else:
         screen.fill(bg_color)
         stats.died(screen)
