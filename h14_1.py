@@ -22,6 +22,8 @@ class Stats():
         self.score = 0
         self.max_score = 0
         self.running = True
+        self.local_record = 0
+
 
     def restart(self, screen, ship):
         aliens.empty()
@@ -39,18 +41,25 @@ class Stats():
         pygame.time.wait(500)
 
     def died(self, screen):
+        self.local_record = update_local_record(stats)
+
         font = pygame.font.Font('fonts/Sonic Press Start Button [NolivantNT Edit]/SonicPressStartButton[NolivantNTEdit]-Regular.ttf', 36)
         text_image = font.render('Game Over', False, "#645F91")
         screen.blit(text_image, (150, 300))
+
         font = pygame.font.Font('fonts/uvKits/uvKits.ttf', 35)
         text_image = font.render(f'Your best score: {self.max_score}', False, "#9FADB2")
         screen.blit(text_image, (150, 500))
+
+        text_image = font.render(f'Your lokal record: {self.local_record}', False, "#9FADB2")
+        screen.blit(text_image, (120, 100))
 
 
     def reload(self, screen, ship):
         self.restart(screen, ship)
 
         self.lives = 3
+        self.local_record = update_local_record(stats)
         self.score = 0
         self.max_score = 0
         self.running = True
@@ -273,6 +282,17 @@ def print_score(score, screen):
     font = pygame.font.SysFont(None, 30)
     text_image = font.render(str(score), True, "#9FADB2")
     screen.blit(text_image, (screen_rect.centerx, screen_rect.top + 30))
+
+def update_local_record(stats):
+    with open('global_record.txt', 'r+', encoding = 'utf-8') as file:
+        local_record = file.read()
+
+        if stats.max_score > int(local_record):
+            file.seek(0)
+            file.write(str(stats.max_score))
+            file.truncate()
+            return local_record
+        return local_record
 
 
 
