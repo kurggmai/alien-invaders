@@ -99,6 +99,10 @@ class Ship(Sprite):
         self.screen = screen
         self.screen_rect = self.screen.get_rect()
         self.speed_factor = 500
+        self.speed_left = 0
+        self.speed_right = 0
+        self.speed_up = 0
+        self.speed_down = 0
 
         self.image = pygame.image.load('images/ship.png')
         self.image = pygame.transform.scale_by(self.image, 2)
@@ -118,17 +122,53 @@ class Ship(Sprite):
 
     def update(self, dt):
         if self.mov_left and self.rect.left > 0:
-            self.rect.centerx -= self.speed_factor * dt
+            if self.speed_left < self.speed_factor:
+                self.speed_left += 30
+            self.rect.centerx -= self.speed_left * dt
 
         if self.mov_right and self.rect.right < self.screen_rect.right:
-            self.rect.centerx += self.speed_factor * dt
+            if self.speed_right < self.speed_factor:
+                self.speed_right += 30
+            self.rect.centerx += self.speed_right * dt
 
         if self.mov_up and self.rect.top > 0:
-            self.rect.centery -= self.speed_factor * dt
+            if self.speed_up < self.speed_factor:
+                self.speed_up += 30
+            self.rect.centery -= self.speed_up * dt
 
         if self.mov_down and self.rect.bottom < self.screen_rect.bottom:
-            self.rect.centery += self.speed_factor * dt
+            if self.speed_down < self.speed_factor:
+                self.speed_down += 30
+            self.rect.centery += self.speed_down * dt
 
+
+        if self.mov_left == False and self.speed_left > 0:
+            if self.rect.left > 0:
+                self.speed_left -= 30
+                self.rect.centerx -= self.speed_left * dt
+            else:
+                self.speed_left = 0
+
+        if self.mov_right == False and self.speed_right > 0:
+            if self.rect.right < self.screen_rect.right:
+                self.speed_right -= 30
+                self.rect.centerx += self.speed_right * dt
+            else:
+                self.speed_right = 0
+
+        if self.mov_up == False and self.speed_up > 0:
+            if self.rect.top > 0:
+                self.speed_up -= 30
+                self.rect.centery -= self.speed_up * dt
+            else:
+                self.speed_up = 0
+
+        if self.mov_down == False and self.speed_down > 0:
+            if self.rect.bottom < self.screen_rect.bottom:
+                self.speed_down -= 30
+                self.rect.centery += self.speed_down * dt
+            else:
+                self.speed_down = 0
 
 class Bullet(Sprite):
     def __init__(self, screen, ship):
