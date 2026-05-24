@@ -51,7 +51,7 @@ class Stats():
         text_image = font.render(f'Your best score: {self.max_score}', False, "#9FADB2")
         screen.blit(text_image, (150, 500))
 
-        text_image = font.render(f'Your lokal record: {self.local_record}', False, "#9FADB2")
+        text_image = font.render(f'Your local record: {self.local_record}', False, "#9FADB2")
         screen.blit(text_image, (120, 100))
 
 
@@ -232,20 +232,71 @@ class Hearts():
             self.rect.x = self.rect.width // 2 + (self.rect.width + 10) * n
             self.rect.y = self.screen_rect.top + self.rect.height
             self.screen.blit(self.image, self.rect)
-            
+
+
+class Explosion(Sprite):
+    def __init__(self, screen, x, y):
+        super().__init__()
+        
+        self.screen = screen
+        self.screen_rect = self.screen.get_rect()
+
+        self.center_x = x
+        self.center_y = y
+
+        self.min_small_rad = 1
+        self.max_small_rad = 10
+        self.small_speed_factor = 40
+        self.factor = 3
+
+        self.color = "#D4FF3A"
+
+        self.rad = self.min_small_rad
+
+        self.image = pygame.Surface((1, 1), pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+
+    def update(self, dt):
+        self.rad += self.small_speed_factor * dt
+        if self.rad >= self.max_small_rad:
+            self.kill()
+            return
+        if self.rad > self.max_small_rad * 0.6:
+            self.color = '#FF613A'
+        
+        self.size = int(self.max_small_rad * 4)
+        self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, self.color, (self.size // 2, self.size // 2), int(self.rad))
+        self.image = pygame.transform.scale_by(self.image, 4.0)
+        self.rect = self.image.get_rect(center = (self.center_x, self.center_y))
+
+    def blitme(self):
+        self.screen.blit(self.image, self.rect)
 
 
 
-def update_bullets(dt, stats):
+def update_bullets(dt, stats, screen):
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+
+
     if collisions:
         stats.score += 1
+        for bullets_list, aliens_list in collisions.items():
+            for alien in aliens_list:
+                explosion = Explosion(screen, alien.rect.centerx, alien.rect.centery)
+                explosions.add(explosion)
 
     for bullet in bullets.sprites():
         bullet.update(dt)
         bullet.draw()
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
+
+def update_explosions(explosions, screen, dt):
+    for explosion in explosions:
+        explosion.update(dt)
+        explosion.blitme()
+    
 
 def update_aliens(dt, spawn_timer, screen, ship):
         collisions = pygame.sprite.spritecollide(ship, aliens, True)
@@ -303,6 +354,7 @@ button = Button(screen)
 hearts = Hearts(screen, stats.lives)
 stars = Group()
 bullets = Group()
+explosions = Group()
 
 alien = Alien(screen)
 aliens = Group()
@@ -368,9 +420,10 @@ while True:
         screen.fill(bg_color)
         stars.update(dt)
         ship.update(dt)
-        update_bullets(dt, stats)
+        update_bullets(dt, stats, screen)
         global_spawn_timer = update_aliens(dt, global_spawn_timer, screen, ship)
         stars.draw(screen)
+        update_explosions(explosions, screen, dt)
         aliens.draw(screen)
         ship.blitme()
         hearts.update(stats.lives)
