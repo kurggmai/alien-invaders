@@ -177,7 +177,7 @@ class Bullet(Sprite):
         self.screen = screen
         self.screen_rect = self.screen.get_rect()
         self.ship = ship
-        self.width = 500
+        self.width = 5
         self.height = 20
         self.color = "#E5F5FF"
         self.speed_factor = 400
