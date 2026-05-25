@@ -177,7 +177,7 @@ class Bullet(Sprite):
         self.screen = screen
         self.screen_rect = self.screen.get_rect()
         self.ship = ship
-        self.width = 5
+        self.width = 500
         self.height = 20
         self.color = "#E5F5FF"
         self.speed_factor = 400
@@ -314,6 +314,31 @@ class Explosion(Sprite):
         self.screen.blit(self.image, self.rect)
 
 
+class Meteor(Sprite):
+    def __init__(self, screen):
+        super().__init__()
+        self.screen = screen
+        self.screen_rect = self.screen.get_rect()
+
+        self.image = pygame.image.load('images/meteor.png')
+        self.image = pygame.transform.scale_by(self.image, 4)
+        self.image = pygame.transform.rotate(self.image, 90)
+        self.rect = self.image.get_rect()
+        self.rect.x = randint(0, self.screen_rect.right - self.rect.width)
+        self.rect.y = -self.rect.height
+
+        self.speed_factor = 500
+        self.fy = float(self.rect.y)
+        
+        self.timer = uniform(3, 6)
+
+    def update(self, dt):
+        self.fy += self.speed_factor * dt
+        self.rect.y = int(self.fy)
+
+    def blitme(self):
+        self.screen.blit(self.image, self.rect)
+    
 
 def update_bullets(dt, stats, screen):
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
@@ -384,8 +409,29 @@ def update_local_record(stats):
             file.truncate()
             return local_record
         return local_record
+    
+def update_meteors(meteors, spawn_timer, dt, screen, stats, ship, aliens):
+    collisions = pygame.sprite.spritecollide(ship, meteors, True)
+    alien_collisions = pygame.sprite.groupcollide(aliens, meteors, True, False)
+    if collisions:
+        stats.lives -= 1
+        stats.restart(screen, ship)
 
+    spawn_timer -= dt
+    if spawn_timer <= 0:
+        meteor = Meteor(screen)
+        meteors.add(meteor)
+        spawn_timer = uniform(1, 5)
 
+    if meteors:
+        for meteor in meteors.sprites():
+            if meteor.rect.top > HEIGHT:
+                meteors.remove(meteor)
+            else:
+                meteor.update(dt)
+                meteor.blitme()
+
+    return spawn_timer
 
 
 stats = Stats()
@@ -395,12 +441,14 @@ hearts = Hearts(screen, stats.lives)
 stars = Group()
 bullets = Group()
 explosions = Group()
+meteors = Group()
 
 alien = Alien(screen)
 aliens = Group()
 aliens.add(alien)
 
 global_spawn_timer = uniform(1, 3)
+meteors_spawn_timer = uniform(1, 5)
 
 for _ in range(500):
     star = Star(screen)
@@ -460,9 +508,10 @@ while True:
         screen.fill(bg_color)
         stars.update(dt)
         ship.update(dt)
+        stars.draw(screen)
         update_bullets(dt, stats, screen)
         global_spawn_timer = update_aliens(dt, global_spawn_timer, screen, ship)
-        stars.draw(screen)
+        meteors_spawn_timer = update_meteors(meteors, meteors_spawn_timer, dt, screen, stats, ship, aliens)
         update_explosions(explosions, screen, dt)
         aliens.draw(screen)
         ship.blitme()
